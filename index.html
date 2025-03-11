@@ -45,7 +45,7 @@
                 });
 
                 let data = await response.json();
-                chatbox.innerHTML += `<p><strong>GoLive! Assistant:</strong> ${data.response}</p>`;
+                chatbox.innerHTML += `<p><strong>GoLive! Assistant:</strong> ${convertLinks(data.response)}</p>`;
                 chatbox.scrollTop = chatbox.scrollHeight; // Auto-scroll to latest message
             } catch (error) {
                 chatbox.innerHTML += `<p style="color: red;"><strong>Error:</strong> Failed to reach server.</p>`;
