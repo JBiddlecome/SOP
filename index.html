@@ -79,6 +79,27 @@
             return formattedResponse;
         }
 
+        function formatResponse(text) {
+            if (!text) return "";
+
+            // Convert **bold** text
+            text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+            // Convert numbered lists (1. Example)
+            text = text.replace(/(\d+)\.\s/g, "<br><strong>$1.</strong> ");
+
+            // Convert bullet points (- Example)
+            text = text.replace(/- (.*?)(\n|$)/g, "<br>• $1");
+
+            // Preserve paragraph breaks (convert double newlines to <br><br>)
+            text = text.replace(/\n\n/g, "<br><br>");
+
+            // Convert single newlines to <br> (within a paragraph)
+            text = text.replace(/\n/g, "<br>");
+
+            return text;
+        }
+
         async function sendMessage() {
             let inputField = document.getElementById("inputBox");
             let userInput = inputField.value.trim();
@@ -97,7 +118,7 @@
                 });
 
                 let data = await response.json();
-                chatbox.innerHTML += `<p><strong>GoLive! Assistant:</strong> ${convertSources(data.response, data)}</p>`;
+                chatbox.innerHTML += `<p><strong>GoLive! Assistant:</strong></p> ${formatResponse(convertSources(data.response, data))}`;
                 chatbox.scrollTop = chatbox.scrollHeight; // Auto-scroll to latest message
             } catch (error) {
                 chatbox.innerHTML += `<p style="color: red;"><strong>Error:</strong> Failed to reach server.</p>`;
