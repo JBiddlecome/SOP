@@ -25,7 +25,7 @@
             let chatbox = document.getElementById("chatbox");
             chatbox.innerHTML += `<p><strong>You:</strong> ${userInput}</p>`;
 
-            let response = await fetch("https://gpt-chatbot-backend.onrender.com/chat", {  // Change this to your API URL when backend is live
+            let response = await fetch("https://gpt-chatbot-backend.onrender.com", {  // Change this to your API URL when backend is live
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ message: userInput })
