@@ -12,23 +12,61 @@
             color: white; /* White text for contrast */
         }
         #chatbox { 
-            width: 600px; 
-            height: 1200px; 
-            max-width: 90%; /*adjusts to screen size */
-            max-height: 80vh; /*Responsive max height */
+            width: 600px; /* Wider chat window */
+            height: 600px; /* Taller chat window */
+            max-width: 90%; /* Adjusts to screen size */
+            max-height: 80vh; /* Responsive max height */
             border: 1px solid #ccc; 
-            overflow-y: auto; 
+            overflow-y: auto; /* Enables scrolling */
             padding: 10px; 
             background-color: white; /* White background for readability */
             color: black;
             border-radius: 10px; /* Rounded edges */
         }
+
+        .user-message {
+            text-align: right;
+            color: blue;
+            font-weight: bold;
+            background-color: #E3F2FD; /* Light blue background */
+            padding: 8px;
+            border-radius: 10px;
+            margin: 5px 0;
+            display: inline-block;
+            max-width: 70%;
+        }
+
+        .bot-message {
+            text-align: left;
+            color: black;
+            background-color: #F1F1F1; /* Light gray background */
+            padding: 8px;
+            border-radius: 10px;
+            margin: 5px 0;
+            display: inline-block;
+            max-width: 70%;
+        }
+
+        .message-container {
+            display: flex;
+            width: 100%;
+        }
+
+        .user-container {
+            justify-content: flex-end; /* Align user messages to the right */
+        }
+
+        .bot-container {
+            justify-content: flex-start; /* Align bot messages to the left */
+        }
+
         #inputBox, #assistantSelect { 
             width: 80%; 
             padding: 10px; 
             border-radius: 5px;
             margin-top: 10px;
         }
+
         #sendButton { 
             padding: 10px; 
             cursor: pointer; 
@@ -37,6 +75,7 @@
             border-radius: 5px;
             margin-top: 10px;
         }
+
         a { 
             color: blue; /* Highlight links */
             text-decoration: underline; 
@@ -46,7 +85,6 @@
 <body>
     <h2>Chat with GoLive! Assistant</h2>
 
-    <!-- Dropdown to select different assistants -->
     <label for="assistantSelect"><strong>Choose an Assistant:</strong></label>
     <select id="assistantSelect">
         <option value="asst_HwvvKaHr2KK96OG4yrEQODAr">Employee</option>
@@ -69,51 +107,6 @@
             }
         }
 
-        function convertLinks(text) {
-            // Regular expression to detect URLs and wrap them in anchor tags
-            let urlRegex = /(https?:\/\/[^\s]+)/g;
-            return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank">${url}</a>`);
-        }
-
-        function convertSources(responseText, data) {
-            let formattedResponse = convertLinks(responseText); // First convert normal links
-
-            if (data.annotations && data.annotations.length > 0) {
-                data.annotations.forEach(annotation => {
-                    let sourceText = annotation.text; // Text in response that is annotated
-                    let sourceUrl = annotation.file_url; // The actual source link
-
-                    if (sourceUrl) {
-                        // Replace source text with a clickable link
-                        formattedResponse = formattedResponse.replace(sourceText, `<a href="${sourceUrl}" target="_blank">${sourceText}</a>`);
-                    }
-                });
-            }
-
-            return formattedResponse;
-        }
-
-        function formatResponse(text) {
-            if (!text) return "";
-
-            // Convert **bold** text
-            text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
-            // Convert numbered lists (1. Example)
-            text = text.replace(/(\d+)\.\s/g, "<br><strong>$1.</strong> ");
-
-            // Convert bullet points (- Example)
-            text = text.replace(/- (.*?)(\n|$)/g, "<br>• $1");
-
-            // Preserve paragraph breaks (convert double newlines to <br><br>)
-            text = text.replace(/\n\n/g, "<br><br>");
-
-            // Convert single newlines to <br> (within a paragraph)
-            text = text.replace(/\n/g, "<br>");
-
-            return text;
-        }
-
         async function sendMessage() {
             let inputField = document.getElementById("inputBox");
             let userInput = inputField.value.trim();
@@ -122,7 +115,9 @@
             if (!userInput) return;
 
             let chatbox = document.getElementById("chatbox");
-            chatbox.innerHTML += `<p><strong>You:</strong> ${userInput}</p>`;
+            chatbox.innerHTML += `<div class="message-container user-container">
+                                     <div class="user-message">${userInput}</div>
+                                 </div>`;
             inputField.value = ""; // Clear input after sending
             inputField.focus(); // Keep focus on input
 
@@ -134,7 +129,9 @@
                 });
 
                 let data = await response.json();
-                chatbox.innerHTML += `<p><strong>GoLive! Assistant:</strong></p> ${formatResponse(convertSources(data.response, data))}`;
+                chatbox.innerHTML += `<div class="message-container bot-container">
+                                         <div class="bot-message">${data.response}</div>
+                                     </div>`;
                 chatbox.scrollTop = chatbox.scrollHeight; // Auto-scroll to latest message
             } catch (error) {
                 chatbox.innerHTML += `<p style="color: red;"><strong>Error:</strong> Failed to reach server.</p>`;
