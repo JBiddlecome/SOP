@@ -119,10 +119,11 @@
         function convertLinks(text) {
             if (!text) return "";
     
-            // Regular expression to detect URLs and wrap them in anchor tags
-            let urlRegex = /(https?:\/\/[^\s]+)/g;
+            // Updated regex: Avoids capturing trailing punctuation like `)` at the end of a URL
+            let urlRegex = /(https?:\/\/[^\s\)]+)/g;
             return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank">${url}</a>`);
-        }
+    }
+
 
         function formatResponse(text) {
             if (!text) return "";
