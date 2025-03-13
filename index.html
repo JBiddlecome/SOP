@@ -127,24 +127,28 @@
 
         function formatResponse(text) {
             if (!text) return "";
-
+        
+            // Remove OpenAI citation markers like  
+            text = text.replace(/【\d+:\d "");
+        
             // Convert **bold** text
             text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
+        
             // Convert numbered lists (1. Example)
             text = text.replace(/(\d+)\.\s/g, "<br><strong>$1.</strong> ");
-
+        
             // Convert bullet points (- Example)
             text = text.replace(/- (.*?)(\n|$)/g, "<br>• $1");
-
+        
             // Preserve paragraph breaks (convert double newlines to <br><br>)
             text = text.replace(/\n\n/g, "<br><br>");
-
+        
             // Convert single newlines to <br> (within a paragraph)
             text = text.replace(/\n/g, "<br>");
-
+        
             return text;
         }
+
 
         function extractSources(data) {
             if (!data.annotations || data.annotations.length === 0) return "";
