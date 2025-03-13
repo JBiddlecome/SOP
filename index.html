@@ -12,8 +12,8 @@
             color: white; /* White text for contrast */
         }
         #chatbox { 
-            width: 800px; /* Wider chat window */
-            height: 800px; /* Taller chat window */
+            width: 600px; /* Wider chat window */
+            height: 600px; /* Taller chat window */
             max-width: 90%; /* Adjusts to screen size */
             max-height: 80vh; /* Responsive max height */
             border: 1px solid #ccc; 
@@ -61,18 +61,17 @@
         }
 
         #inputBox { 
-            width: 50%; 
+            width: 60%; /* Narrower input field */
             padding: 8px; 
             border-radius: 5px;
             margin-top: 10px;
         }
 
-        #assistantSelect {
-            width: 40%;
-            padding: 8px;
+        #assistantSelect { 
+            width: 40%; /* Narrower dropdown */
+            padding: 8px; 
             border-radius: 5px;
             margin-top: 10px;
-
         }
 
         #sendButton { 
@@ -144,10 +143,28 @@
             return text;
         }
 
+        function extractSources(data) {
+            if (!data.annotations || data.annotations.length === 0) return "";
+
+            let sourceHTML = "<br><strong>Sources:</strong><br>";
+            data.annotations.forEach(annotation => {
+                let sourceText = annotation.text;  // The citation marker like  
+                let annotation.file_url;  // The actual file link, if available
+
+                if (sourceUrl) {
+                    sourceHTML += `• <a href="${sourceUrl}" target="_blank">${sourceText}</a><br>`;
+                } else {
+                    sourceHTML += `• ${sourceText} (No link available)<br>`;
+                }
+            });
+
+            return sourceHTML;
+        }
+
         async function sendMessage() {
             let inputField = document.getElementById("inputBox");
             let userInput = inputField.value.trim();
-            let selectedAssistant = document.getElementById("assistantSelect").value; // Get selected assistant
+            let selectedAssistant = document.getElementById("assistantSelect").value;
 
             if (!userInput) return;
 
@@ -156,20 +173,21 @@
                                      <div class="user-message">${userInput}</div>
                                  </div>`;
             inputField.value = ""; // Clear input after sending
-            inputField.focus(); // Keep focus on input
 
             try {
                 let response = await fetch("https://gpt-chatbot-backend.onrender.com/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ message: userInput, assistant_id: selectedAssistant }) // Send assistant_id
+                    body: JSON.stringify({ message: userInput, assistant_id: selectedAssistant })
                 });
 
                 let data = await response.json();
+                let formattedResponse = formatResponse(convertLinks(data.response));
+                let sources = extractSources(data);
+
                 chatbox.innerHTML += `<div class="message-container bot-container">
-                                         <div class="bot-message">${formatResponse(convertLinks(data.response))}</div>
+                                         <div class="bot-message">${formattedResponse}${sources}</div>
                                      </div>`;
-                chatbox.scrollTop = chatbox.scrollHeight; // Auto-scroll to latest message
             } catch (error) {
                 chatbox.innerHTML += `<p style="color: red;"><strong>Error:</strong> Failed to reach server.</p>`;
             }
