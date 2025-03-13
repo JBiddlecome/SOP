@@ -107,6 +107,35 @@
             }
         }
 
+        function convertLinks(text) {
+            if (!text) return "";
+    
+            // Regular expression to detect URLs and wrap them in anchor tags
+            let urlRegex = /(https?:\/\/[^\s]+)/g;
+            return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank">${url}</a>`);
+        }
+
+        function formatResponse(text) {
+            if (!text) return "";
+
+            // Convert **bold** text
+            text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+
+            // Convert numbered lists (1. Example)
+            text = text.replace(/(\d+)\.\s/g, "<br><strong>$1.</strong> ");
+
+            // Convert bullet points (- Example)
+            text = text.replace(/- (.*?)(\n|$)/g, "<br>• $1");
+
+            // Preserve paragraph breaks (convert double newlines to <br><br>)
+            text = text.replace(/\n\n/g, "<br><br>");
+
+            // Convert single newlines to <br> (within a paragraph)
+            text = text.replace(/\n/g, "<br>");
+
+            return text;
+        }
+
         async function sendMessage() {
             let inputField = document.getElementById("inputBox");
             let userInput = inputField.value.trim();
@@ -130,7 +159,7 @@
 
                 let data = await response.json();
                 chatbox.innerHTML += `<div class="message-container bot-container">
-                                         <div class="bot-message">${data.response}</div>
+                                         <div class="bot-message">${formatResponse(convertLinks(data.response))}</div>
                                      </div>`;
                 chatbox.scrollTop = chatbox.scrollHeight; // Auto-scroll to latest message
             } catch (error) {
