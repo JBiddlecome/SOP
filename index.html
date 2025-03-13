@@ -21,10 +21,11 @@
             color: black;
             border-radius: 10px; /* Rounded edges */
         }
-        #inputBox { 
+        #inputBox, #assistantSelect { 
             width: 80%; 
             padding: 10px; 
             border-radius: 5px;
+            margin-top: 10px;
         }
         #sendButton { 
             padding: 10px; 
@@ -32,6 +33,7 @@
             background-color: white; 
             border: 1px solid black;
             border-radius: 5px;
+            margin-top: 10px;
         }
         a { 
             color: blue; /* Highlight links */
@@ -41,6 +43,15 @@
 </head>
 <body>
     <h2>Chat with GoLive! Assistant</h2>
+
+    <!-- Dropdown to select different assistants -->
+    <label for="assistantSelect"><strong>Choose an Assistant:</strong></label>
+    <select id="assistantSelect">
+        <option value="asst_XXXXXXXXXXXXXX">Assistant 1</option>
+        <option value="asst_YYYYYYYYYYYYYY">Assistant 2</option>
+        <option value="asst_ZZZZZZZZZZZZZZ">Assistant 3</option>
+    </select>
+
     <div id="chatbox"></div>
     <input type="text" id="inputBox" placeholder="Type your message..." onkeypress="handleKeyPress(event)">
     <button id="sendButton" onclick="sendMessage()">Send</button>
@@ -70,7 +81,7 @@
                     let sourceUrl = annotation.file_url; // The actual source link
 
                     if (sourceUrl) {
-                        // Replace text like ckable link
+                        // Replace source text with a clickable link
                         formattedResponse = formattedResponse.replace(sourceText, `<a href="${sourceUrl}" target="_blank">${sourceText}</a>`);
                     }
                 });
@@ -103,6 +114,8 @@
         async function sendMessage() {
             let inputField = document.getElementById("inputBox");
             let userInput = inputField.value.trim();
+            let selectedAssistant = document.getElementById("assistantSelect").value; // Get selected assistant
+
             if (!userInput) return;
 
             let chatbox = document.getElementById("chatbox");
@@ -114,7 +127,7 @@
                 let response = await fetch("https://gpt-chatbot-backend.onrender.com/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ message: userInput })
+                    body: JSON.stringify({ message: userInput, assistant_id: selectedAssistant }) // Send assistant_id
                 });
 
                 let data = await response.json();
