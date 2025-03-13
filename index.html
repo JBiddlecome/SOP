@@ -4,6 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>GoLive! Assistant</title>
+    <link rel="icon" href="data:,"> <!-- Fix for favicon.ico 404 error -->
+    
     <style>
         body { 
             font-family: Arial, sans-serif; 
@@ -147,9 +149,8 @@
             if (!data.annotations || data.annotations.length === 0) return "";
 
             let sourceHTML = "<br><strong>Sources:</strong><br>";
-            data.annotations.forEach(annotation => {
-                let sourceText = annotation.text;  // The citation marker like  
-                let annotation.file_url;  // The actual file link, if available
+            data.annotations.forEach(ann => { // Fix for duplicate variable declaration
+                let sourceText = ann.text;  // The citation marker like       let sourceUrl = ann.file_url;  // The actual file link, if available
 
                 if (sourceUrl) {
                     sourceHTML += `• <a href="${sourceUrl}" target="_blank">${sourceText}</a><br>`;
@@ -181,15 +182,20 @@
                     body: JSON.stringify({ message: userInput, assistant_id: selectedAssistant })
                 });
 
+                if (!response.ok) {
+                    throw new Error(`Server error: ${response.status}`);
+                }
+
                 let data = await response.json();
-                let formattedResponse = formatResponse(convertLinks(data.response));
+                let formattedResponse = formatResponse(convertLinks(data.response || "No response received."));
                 let sources = extractSources(data);
 
                 chatbox.innerHTML += `<div class="message-container bot-container">
                                          <div class="bot-message">${formattedResponse}${sources}</div>
                                      </div>`;
             } catch (error) {
-                chatbox.innerHTML += `<p style="color: red;"><strong>Error:</strong> Failed to reach server.</p>`;
+                console.error("Chatbot Error:", error);
+                chatbox.innerHTML += `<p style="color: red;"><strong>Error:</strong> Failed to reach server or invalid response.</p>`;
             }
         }
     </script>
