@@ -40,7 +40,8 @@
 
         .bot-message {
             display: flex;
-            align-items: center;
+            align-items: flex-start;
+            flex-direction: row;
             text-align: left;
             color: black;
             background-color: #F1F1F1; /* Light gray background */
@@ -48,6 +49,12 @@
             border-radius: 10px;
             margin: 5px 0;
             max-width: 70%;
+        }
+
+        .bot-message-text {
+            display: block;
+            flex-grow: 1;
+
         }
 
         .chef-icon {
