@@ -128,7 +128,7 @@
             if (!text) return "";
 
             // Remove OpenAI citation markers like  
-            xt.replace(/【[^】]+】/g, "");
+            text.replace(/【[^】]+】/g, "");
 
             // Convert **bold** text
             text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
