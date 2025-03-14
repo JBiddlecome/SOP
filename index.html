@@ -119,43 +119,42 @@
         function convertLinks(text) {
             if (!text) return "";
     
-            // Updated regex: Avoids capturing trailing punctuation like `)` at the end of a URL
+            // Regular expression to detect URLs and wrap them in anchor tags
             let urlRegex = /(https?:\/\/[^\s\)]+)/g;
             return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank">${url}</a>`);
         }
 
-
         function formatResponse(text) {
             if (!text) return "";
-        
+
             // Remove OpenAI citation markers like  
-            text = text.replace(/【\d+:\d "");
-        
+         xt.replace(/【[^】]+】/g, "");
+
             // Convert **bold** text
             text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-        
+
             // Convert numbered lists (1. Example)
             text = text.replace(/(\d+)\.\s/g, "<br><strong>$1.</strong> ");
-        
+
             // Convert bullet points (- Example)
             text = text.replace(/- (.*?)(\n|$)/g, "<br>• $1");
-        
+
             // Preserve paragraph breaks (convert double newlines to <br><br>)
             text = text.replace(/\n\n/g, "<br><br>");
-        
+
             // Convert single newlines to <br> (within a paragraph)
             text = text.replace(/\n/g, "<br>");
-        
+
             return text;
         }
-
 
         function extractSources(data) {
             if (!data.annotations || data.annotations.length === 0) return "";
 
             let sourceHTML = "<br><strong>Sources:</strong><br>";
             data.annotations.forEach(ann => { // Fix for duplicate variable declaration
-                let sourceText = ann.text;  // The citation marker like       let sourceUrl = ann.file_url;  // The actual file link, if available
+                let sourceText = ann.text;  // The citation marker like  
+                let sourceUrl = ann.file_url;  // The actual file link, if available
 
                 if (sourceUrl) {
                     sourceHTML += `• <a href="${sourceUrl}" target="_blank">${sourceText}</a><br>`;
