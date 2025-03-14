@@ -14,23 +14,23 @@
             color: white; /* White text for contrast */
         }
         #chatbox { 
-            width: 800px; /* Wider chat window */
-            height: 800px; /* Taller chat window */
-            max-width: 90%; /* Adjusts to screen size */
-            max-height: 80vh; /* Responsive max height */
-            border: 1px solid #ccc; 
-            overflow-y: auto; /* Enables scrolling */
-            padding: 10px; 
-            background-color: white; /* White background for readability */
+            width: 800px;
+            height: 800px;
+            max-width: 90%;
+            max-height: 80vh;
+            border: 1px solid #ccc;
+            overflow-y: auto;
+            padding: 10px;
+            background-color: white;
             color: black;
-            border-radius: 10px; /* Rounded edges */
+            border-radius: 10px;
         }
 
         .user-message {
             text-align: right;
             color: blue;
             font-weight: bold;
-            background-color: #E3F2FD; /* Light blue background */
+            background-color: #E3F2FD;
             padding: 8px;
             border-radius: 10px;
             margin: 5px 0;
@@ -43,7 +43,7 @@
             align-items: flex-start;
             text-align: left;
             color: black;
-            background-color: #F1F1F1; /* Light gray background */
+            background-color: #F1F1F1;
             padding: 8px;
             border-radius: 10px;
             margin: 5px 0;
@@ -59,7 +59,6 @@
             max-width: 100%;
             word-wrap: break-word;
             overflow-wrap: break-word;
-            white-space: normal;  /* Ensures text breaks properly */
         }
 
         .chef-icon {
@@ -105,7 +104,7 @@
         }
 
         a { 
-            color: blue; 
+            color: blue;
             text-decoration: underline; 
         }
     </style>
@@ -137,7 +136,7 @@
 
         function convertLinks(text) {
             if (!text) return "";
-    
+
             let urlRegex = /(https?:\/\/[^\s\)]+)/g;
             return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank">${url}</a>`);
         }
@@ -145,12 +144,12 @@
         function formatResponse(text) {
             if (!text) return "";
 
-            text = text.replace(/【[^】]+】/g, "");
-            text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-            text = text.replace(/(\d+)\.\s/g, "<br><strong>$1.</strong> ");
-            text = text.replace(/- (.*?)(\n|$)/g, "<br>• $1");
-            text = text.replace(/\n\n/g, "<br><br>");
-            text = text.replace(/\n/g, "<br>");
+            text = text.replace(/【[^】]+】/g, ""); // Remove OpenAI citation markers
+            text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>"); // Bold text
+            text = text.replace(/(\d+)\.\s/g, "<br><strong>$1.</strong> "); // Numbered lists
+            text = text.replace(/- (.*?)(\n|$)/g, "<br>• $1"); // Bullet points
+            text = text.replace(/\n\n/g, "<br><br>"); // Paragraph breaks
+            text = text.replace(/\n/g, "<br>"); // Line breaks
 
             return text;
         }
@@ -159,78 +158,81 @@
             let inputField = document.getElementById("inputBox");
             let userInput = inputField.value.trim();
             let selectedAssistant = document.getElementById("assistantSelect").value;
-        
+
             if (!userInput) return;
-        
+
             let chatbox = document.getElementById("chatbox");
-        
-            // Add user message to chat immediately
+
             let userMessageContainer = document.createElement("div");
             userMessageContainer.classList.add("message-container", "user-container");
-        
+
             let userMessage = document.createElement("div");
             userMessage.classList.add("user-message");
-            userMessage.innerText = userInput; // Display user message
+            userMessage.innerText = userInput;
             userMessageContainer.appendChild(userMessage);
             chatbox.appendChild(userMessageContainer);
-            chatbox.scrollTop = chatbox.scrollHeight; // Auto-scroll
-        
-            inputField.value = ""; // Clear input field after sending
-        
-            // Create bot message container
+            chatbox.scrollTop = chatbox.scrollHeight;
+
+            inputField.value = ""; 
+
             let botMessageContainer = document.createElement("div");
             botMessageContainer.classList.add("message-container", "bot-container");
-        
+
             let botMessage = document.createElement("div");
             botMessage.classList.add("bot-message");
-        
+
             let chefIcon = document.createElement("img");
             chefIcon.src = "https://raw.githubusercontent.com/JBiddlecome/SOP/main/Chef%20Icon%20small.png";
             chefIcon.classList.add("chef-icon");
-        
+
             let textContainer = document.createElement("div");
             textContainer.classList.add("bot-message-text");
-        
+
             botMessage.appendChild(chefIcon);
             botMessage.appendChild(textContainer);
             botMessageContainer.appendChild(botMessage);
             chatbox.appendChild(botMessageContainer);
             chatbox.scrollTop = chatbox.scrollHeight;
-        
+
             try {
                 let response = await fetch("https://gpt-chatbot-backend.onrender.com/chat", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify({ message: userInput, assistant_id: selectedAssistant })
                 });
-        
+
                 if (!response.ok) {
                     throw new Error(`Server error: ${response.status}`);
                 }
-        
+
                 const reader = response.body.getReader();
                 const decoder = new TextDecoder();
                 let messageText = "";
-        
+
                 while (true) {
                     const { done, value } = await reader.read();
                     if (done) break;
-        
+
                     const chunk = decoder.decode(value, { stream: true });
-                    const parsedChunk = JSON.parse(chunk);
-        
-                    if (parsedChunk.response) {
-                        messageText += parsedChunk.response + " ";
-                        textContainer.innerHTML = convertLinks(messageText); // Apply link conversion
-                        chatbox.scrollTop = chatbox.scrollHeight;
-                    }
+                    const chunks = chunk.trim().split("\n");
+                    chunks.forEach((line) => {
+                        try {
+                            const parsedChunk = JSON.parse(line);
+                            if (parsedChunk.response) {
+                                messageText += parsedChunk.response + " ";
+                                textContainer.innerHTML = formatResponse(convertLinks(messageText));
+                                chatbox.scrollTop = chatbox.scrollHeight;
+                            }
+                        } catch (err) {
+                            console.error("❌ JSON Parsing Error:", err, "Chunk received:", line);
+                        }
+                    });
                 }
             } catch (error) {
                 console.error("Chatbot Error:", error);
                 textContainer.innerHTML = `<p style="color: red;"><strong>Error:</strong> Failed to reach server.</p>`;
             }
         }
-
     </script>
 </body>
 </html>
