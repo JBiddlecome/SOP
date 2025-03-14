@@ -51,10 +51,8 @@
             word-wrap: break-word;
             overflow-wrap: break-word;
             white-space: normal;
-
-            /*Ensure it stays inside the container */
             overflow: hidden;
-            box-sizing; border-box;
+            box-sizing: border-box;
         }
 
         .bot-message-text {
@@ -112,10 +110,26 @@
             color: blue;
             text-decoration: underline; 
         }
+
+        /* Logo Styling */
+        .logo {
+            height: 50px;
+            margin-right: 10px;
+        }
+
+        .title-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
     </style>
 </head>
 <body>
-    <h2>Chat with GoLive! Assistant</h2>
+    <div class="title-container">
+        <img src="https://raw.githubusercontent.com/JBiddlecome/SOP/main/EAT%20Logo%20Culinary%20Staffing%20Service-CS-LT-JakeB.jpg" 
+             alt="Company Logo" class="logo">
+        <h2>Chat with GoLive! Assistant</h2>
+    </div>
 
     <label for="assistantSelect"><strong>Choose an Assistant:</strong></label>
     <select id="assistantSelect">
@@ -198,45 +212,6 @@
             botMessageContainer.appendChild(botMessage);
             chatbox.appendChild(botMessageContainer);
             chatbox.scrollTop = chatbox.scrollHeight;
-
-            try {
-                let response = await fetch("https://gpt-chatbot-backend.onrender.com/chat", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ message: userInput, assistant_id: selectedAssistant })
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
-
-                const reader = response.body.getReader();
-                const decoder = new TextDecoder();
-                let messageText = "";
-
-                while (true) {
-                    const { done, value } = await reader.read();
-                    if (done) break;
-
-                    const chunk = decoder.decode(value, { stream: true });
-                    const chunks = chunk.trim().split("\n");
-                    chunks.forEach((line) => {
-                        try {
-                            const parsedChunk = JSON.parse(line);
-                            if (parsedChunk.response) {
-                                messageText += parsedChunk.response + " ";
-                                textContainer.innerHTML = formatResponse(convertLinks(messageText));
-                                chatbox.scrollTop = chatbox.scrollHeight;
-                            }
-                        } catch (err) {
-                            console.error("❌ JSON Parsing Error:", err, "Chunk received:", line);
-                        }
-                    });
-                }
-            } catch (error) {
-                console.error("Chatbot Error:", error);
-                textContainer.innerHTML = `<p style="color: red;"><strong>Error:</strong> Failed to reach server.</p>`;
-            }
         }
     </script>
 </body>
