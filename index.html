@@ -39,14 +39,21 @@
         }
 
         .bot-message {
+            display: flex;
+            align-items: center;
             text-align: left;
             color: black;
             background-color: #F1F1F1; /* Light gray background */
             padding: 8px;
             border-radius: 10px;
             margin: 5px 0;
-            display: inline-block;
             max-width: 70%;
+        }
+
+        .chef-icon {
+            width: 30px; /* Resize icon */
+            height: 30px;
+            margin-right: 8px; /* Space between icon and text */
         }
 
         .message-container {
@@ -128,7 +135,7 @@
             if (!text) return "";
 
             // Remove OpenAI citation markers like  
-            text.replace(/【[^】]+】/g, "");
+            text = text.replace(/【[^】]+】/g, "");
 
             // Convert **bold** text
             text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
@@ -146,24 +153,6 @@
             text = text.replace(/\n/g, "<br>");
 
             return text;
-        }
-
-        function extractSources(data) {
-            if (!data.annotations || data.annotations.length === 0) return "";
-
-            let sourceHTML = "<br><strong>Sources:</strong><br>";
-            data.annotations.forEach(ann => { // Fix for duplicate variable declaration
-                let sourceText = ann.text;  // The citation marker like  
-                let sourceUrl = ann.file_url;  // The actual file link, if available
-
-                if (sourceUrl) {
-                    sourceHTML += `• <a href="${sourceUrl}" target="_blank">${sourceText}</a><br>`;
-                } else {
-                    sourceHTML += `• ${sourceText} (No link available)<br>`;
-                }
-            });
-
-            return sourceHTML;
         }
 
         async function sendMessage() {
@@ -192,12 +181,12 @@
 
                 let data = await response.json();
                 let formattedResponse = formatResponse(convertLinks(data.response || "No response received."));
-                let sources = extractSources(data);
 
                 chatbox.innerHTML += `<div class="message-container bot-container">
                                          <div class="bot-message">
-                                             <img src="https://github.com/JBiddlecome/SOP/blob/main/Chef%20Icon%20small.png">
-                                             ${formattedResponse}${sources}</div>
+                                             <img src="https://raw.githubusercontent.com/JBiddlecome/SOP/main/Chef%20Icon%20small.png" class="chef-icon" alt="Chef Icon">
+                                             ${formattedResponse}
+                                         </div>
                                      </div>`;
             } catch (error) {
                 console.error("Chatbot Error:", error);
