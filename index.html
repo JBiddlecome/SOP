@@ -195,7 +195,9 @@
                 let sources = extractSources(data);
 
                 chatbox.innerHTML += `<div class="message-container bot-container">
-                                         <div class="bot-message">👨‍🍳${formattedResponse}${sources}</div>
+                                         <div class="bot-message">
+                                             <img src="https://github.com/JBiddlecome/SOP/blob/main/Chef%20Icon%20small.png">
+                                             ${formattedResponse}${sources}</div>
                                      </div>`;
             } catch (error) {
                 console.error("Chatbot Error:", error);
