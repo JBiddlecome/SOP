@@ -41,7 +41,6 @@
         .bot-message {
             display: flex;
             align-items: flex-start;
-            flex-direction: row;
             text-align: left;
             color: black;
             background-color: #F1F1F1; /* Light gray background */
@@ -57,16 +56,15 @@
         .bot-message-text {
             display: block;
             flex-grow: 1;
-            max-width: 100%
+            max-width: 100%;
             word-wrap: break-word;
             overflow-wrap: break-word;
-
         }
 
         .chef-icon {
-            width: 30px; /* Resize icon */
+            width: 30px;
             height: 30px;
-            margin-right: 8px; /* Space between icon and text */
+            margin-right: 8px;
         }
 
         .message-container {
@@ -75,22 +73,22 @@
         }
 
         .user-container {
-            justify-content: flex-end; /* Align user messages to the right */
+            justify-content: flex-end;
         }
 
         .bot-container {
-            justify-content: flex-start; /* Align bot messages to the left */
+            justify-content: flex-start;
         }
 
         #inputBox { 
-            width: 60%; /* Narrower input field */
+            width: 60%;
             padding: 8px; 
             border-radius: 5px;
             margin-top: 10px;
         }
 
         #assistantSelect { 
-            width: 40%; /* Narrower dropdown */
+            width: 40%;
             padding: 8px; 
             border-radius: 5px;
             margin-top: 10px;
@@ -106,7 +104,7 @@
         }
 
         a { 
-            color: blue; /* Highlight links */
+            color: blue; 
             text-decoration: underline; 
         }
     </style>
@@ -127,19 +125,18 @@
     <button id="sendButton" onclick="sendMessage()">Send</button>
 
     <script>
-        document.getElementById("inputBox").focus(); // Auto-focus input on load
+        document.getElementById("inputBox").focus();
 
         function handleKeyPress(event) {
             if (event.key === "Enter") {
                 sendMessage();
-                event.preventDefault(); // Prevent unintended form submission
+                event.preventDefault();
             }
         }
 
         function convertLinks(text) {
             if (!text) return "";
     
-            // Regular expression to detect URLs and wrap them in anchor tags
             let urlRegex = /(https?:\/\/[^\s\)]+)/g;
             return text.replace(urlRegex, (url) => `<a href="${url}" target="_blank">${url}</a>`);
         }
@@ -147,22 +144,11 @@
         function formatResponse(text) {
             if (!text) return "";
 
-            // Remove OpenAI citation markers like  
             text = text.replace(/【[^】]+】/g, "");
-
-            // Convert **bold** text
             text = text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
-
-            // Convert numbered lists (1. Example)
             text = text.replace(/(\d+)\.\s/g, "<br><strong>$1.</strong> ");
-
-            // Convert bullet points (- Example)
             text = text.replace(/- (.*?)(\n|$)/g, "<br>• $1");
-
-            // Preserve paragraph breaks (convert double newlines to <br><br>)
             text = text.replace(/\n\n/g, "<br><br>");
-
-            // Convert single newlines to <br> (within a paragraph)
             text = text.replace(/\n/g, "<br>");
 
             return text;
@@ -176,10 +162,26 @@
             if (!userInput) return;
 
             let chatbox = document.getElementById("chatbox");
-            chatbox.innerHTML += `<div class="message-container user-container">
-                                     <div class="user-message">${userInput}</div>
-                                 </div>`;
-            inputField.value = ""; // Clear input after sending
+            let botMessageContainer = document.createElement("div");
+            botMessageContainer.classList.add("message-container", "bot-container");
+
+            let botMessage = document.createElement("div");
+            botMessage.classList.add("bot-message");
+
+            let chefIcon = document.createElement("img");
+            chefIcon.src = "https://raw.githubusercontent.com/JBiddlecome/SOP/main/Chef%20Icon%20small.png";
+            chefIcon.classList.add("chef-icon");
+
+            let textContainer = document.createElement("div");
+            textContainer.classList.add("bot-message-text");
+
+            botMessage.appendChild(chefIcon);
+            botMessage.appendChild(textContainer);
+            botMessageContainer.appendChild(botMessage);
+            chatbox.appendChild(botMessageContainer);
+            chatbox.scrollTop = chatbox.scrollHeight;
+
+            inputField.value = ""; 
 
             try {
                 let response = await fetch("https://gpt-chatbot-backend.onrender.com/chat", {
@@ -192,18 +194,26 @@
                     throw new Error(`Server error: ${response.status}`);
                 }
 
-                let data = await response.json();
-                let formattedResponse = formatResponse(convertLinks(data.response || "No response received."));
+                const reader = response.body.getReader();
+                const decoder = new TextDecoder();
+                let messageText = "";
 
-                chatbox.innerHTML += `<div class="message-container bot-container">
-                                         <div class="bot-message">
-                                             <img src="https://raw.githubusercontent.com/JBiddlecome/SOP/main/Chef%20Icon%20small.png" class="chef-icon" alt="Chef Icon">
-                                             <div class="bot-message-text">${formattedResponse}
-                                         </div>
-                                     </div>`;
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    const chunk = decoder.decode(value, { stream: true });
+                    const parsedChunk = JSON.parse(chunk);
+
+                    if (parsedChunk.response) {
+                        messageText += parsedChunk.response + " ";
+                        textContainer.innerHTML = messageText;
+                        chatbox.scrollTop = chatbox.scrollHeight;
+                    }
+                }
             } catch (error) {
                 console.error("Chatbot Error:", error);
-                chatbox.innerHTML += `<p style="color: red;"><strong>Error:</strong> Failed to reach server or invalid response.</p>`;
+                textContainer.innerHTML = `<p style="color: red;"><strong>Error:</strong> Failed to reach server.</p>`;
             }
         }
     </script>
